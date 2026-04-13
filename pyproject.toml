@@ -16,6 +16,7 @@ dependencies = [
     "wfdb",        # Crucial for PhysioNet data
     "scipy",       # Often needed for resampling/filtering
     "tqdm",
+    "neurokit2",
 ]
 
 [project.optional-dependencies]

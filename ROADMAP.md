@@ -8,8 +8,8 @@ graph TD
   classDef incomplete fill:#f9f9f9,stroke:#333,stroke-dasharray: 5 5;
 
   %% Nodes
-  A[Raw MIMIC]:::incomplete
-  B[Raw PTBXL]:::incomplete
+  A[Raw MIMIC DS]:::incomplete
+  B[Raw PTBXL DS]:::incomplete
   C[Processed Signal Cache-er]:::incomplete
   D[Processed Signal Dataset]:::incomplete
   E[Median Beat Cache-er]:::incomplete
