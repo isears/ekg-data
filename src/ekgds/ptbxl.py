@@ -1,11 +1,11 @@
 import os
-import torch
 import pandas as pd
 import numpy as np
 import ast
 import wfdb
 import neurokit2 as nk
 from typing import Optional
+from ekgds import BaseEKGProcessingDS
 
 
 def load_single_ptbxl_record(
@@ -20,11 +20,11 @@ def load_single_ptbxl_record(
         return wfdb.rdsamp(f"{root_dir}/records500/{prefix_dir}/{id_str}_hr")  # type: ignore
 
 
-class PtbxlProcessingDS(torch.utils.data.Dataset):
+class PtbxlProcessingDS(BaseEKGProcessingDS):
 
     def __init__(
         self,
-        root_folder: Optional[str] = None,
+        path: Optional[str] = None,
         lowres: bool = False,
     ):
         """Base PTBXL dataset initialization
@@ -38,15 +38,15 @@ class PtbxlProcessingDS(torch.utils.data.Dataset):
         """
         super(PtbxlProcessingDS, self).__init__()
 
-        resolved_root = root_folder or os.environ.get("PTBXL_DATA_DIR")
-        if not resolved_root or not os.path.exists(resolved_root):
+        resolved_path = path or os.environ.get("PTBXL_DATA_DIR")
+        if not resolved_path or not os.path.exists(resolved_path):
             raise ValueError(
                 "Dataset root folder must be specified via the `root_folder` "
                 "argument or the `PTBXL_DATA_DIR` environment variable, and the path must exist."
             )
-        self.root_folder: str = resolved_root
+        self.path: str = resolved_path
 
-        metadata = pd.read_csv(f"{self.root_folder}/ptbxl_database.csv")
+        metadata = pd.read_csv(f"{self.path}/ptbxl_database.csv")
         metadata = metadata.astype({"ecg_id": int, "patient_id": int})
         self.metadata = metadata
 
@@ -56,7 +56,7 @@ class PtbxlProcessingDS(torch.utils.data.Dataset):
         self.metadata["scp_codes"] = self.metadata.scp_codes.apply(ast.literal_eval)
 
         # Modified from physionet example.py
-        scp_codes = pd.read_csv(f"{self.root_folder}/scp_statements.csv", index_col=0)
+        scp_codes = pd.read_csv(f"{self.path}/scp_statements.csv", index_col=0)
         scp_codes = scp_codes[scp_codes.diagnostic == 1]
 
         self.ordered_labels = list()
@@ -75,7 +75,7 @@ class PtbxlProcessingDS(torch.utils.data.Dataset):
         this_metadata = self.metadata.iloc[index].to_dict()
 
         sig, sigmeta = load_single_ptbxl_record(
-            id=this_metadata["ecg_id"], lowres=self.lowres, root_dir=self.root_folder
+            id=this_metadata["ecg_id"], lowres=self.lowres, root_dir=self.path
         )
 
         sig_clean = np.apply_along_axis(
@@ -103,9 +103,9 @@ class PtbxlProcessingDS(torch.utils.data.Dataset):
                     "I",
                     "II",
                     "III",
-                    "aVR",
-                    "aVL",
-                    "aVF",
+                    "AVR",
+                    "AVL",
+                    "AVF",
                     "V1",
                     "V2",
                     "V3",

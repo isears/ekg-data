@@ -12,7 +12,7 @@ def test_missing_root_dir(monkeypatch):
     monkeypatch.delenv("PTBXL_DATA_DIR", raising=False)
 
     with pytest.raises(ValueError, match="Dataset root folder must be specified"):
-        PtbxlProcessingDS(root_folder=None)
+        PtbxlProcessingDS(path=None)
 
 
 @patch("ekgds.ptbxl.load_single_ptbxl_record")
@@ -64,7 +64,7 @@ def test_dataset_getitem(mock_load, tmp_path):
     mock_load.return_value = (mock_sig, mock_meta)
 
     # 3. Instantiate the dataset pointing to our temporary directory
-    ds = PtbxlProcessingDS(root_folder=str(tmp_path), lowres=True)
+    ds = PtbxlProcessingDS(path=str(tmp_path), lowres=True)
 
     # 4. Assertions
     assert len(ds) == 2
