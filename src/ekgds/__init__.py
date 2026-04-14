@@ -29,3 +29,37 @@ class BaseEKGProcessingDS(Dataset, abc.ABC):
             tuple[np.ndarray, dict]: A tuple containing the processed EKG signal array and a dictionary of metadata.
         """
         pass
+
+    @staticmethod
+    def postprocessing_check(sig: np.ndarray, metadata: dict) -> list[str]:
+        """
+        Perform sanity checks on the processed signal to ensure filtering and
+        processing steps did not corrupt the data. Returns a list of warning flags.
+        """
+        record_id = (
+            metadata.get("ecg_id")
+            or metadata.get("record_name")
+            or metadata.get("id", "unknown")
+        )
+
+        # 1. NaN and Inf check
+        if np.isnan(sig).any() or np.isinf(sig).any():
+            raise ValueError(
+                f"Signal contains NaN or Inf values for record: {record_id}"
+            )
+
+        warnings_list = []
+
+        # 2. Dead lead check (Standard deviation near 0)
+        # Using axis=-1 assuming the last dimension is the time/sequence dimension
+        stds = np.std(sig, axis=-1)
+        if np.any(stds < 1e-6):
+            warnings_list.append("dead_lead")
+
+        # 3. Baseline wander / DC offset check
+        # Means should be close to 0 if a high-pass filter was applied
+        means = np.mean(sig, axis=-1)
+        if np.any(np.abs(means) > 0.5):
+            warnings_list.append("baseline_wander")
+
+        return warnings_list

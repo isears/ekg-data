@@ -12,8 +12,7 @@ graph TD
   B[PTBXL Processing DS]:::complete
   C[Processed Signal Cache-er]:::complete
   D[Processed Signal Dataset]:::incomplete
-  E[Median Beat Cache-er]:::incomplete
-  F[Median Beat Dataset]:::incomplete
+  E[Median Beat Processing DS]:::incomplete
   G[Masked Dataset]:::incomplete
   H[Channel Masking]:::incomplete
   I[Random Segment Masking]:::incomplete
@@ -21,16 +20,14 @@ graph TD
 
   A --> C
   B --> C
-  C --> D
   A --> E
   B --> E
-  E --> F
+  E --> C
+  C --> D
   D --> G
-  F --> G
   G --> H
   G --> I
   D --> J
-  F --> J
 
 
 ```

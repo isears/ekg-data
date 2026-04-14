@@ -74,6 +74,7 @@ def build_dataset_cache(
 
     all_metadata = []
     memmap_array = None
+    warning_counts = {}
 
     current_idx = 0
     for i, (sig_batch, meta_batch) in enumerate(
@@ -100,6 +101,11 @@ def build_dataset_cache(
             memmap_array.flush()
 
         for j, meta in enumerate(meta_batch):
+            # Run post-processing checks on each item
+            warnings_triggered = dataset_cls.postprocessing_check(sig_batch[j], meta)
+            for w in warnings_triggered:
+                warning_counts[w] = warning_counts.get(w, 0) + 1
+
             meta["memmap_index"] = current_idx + j
             all_metadata.append(meta)
 
@@ -112,6 +118,14 @@ def build_dataset_cache(
     metadata_df = pd.DataFrame(all_metadata)
     metadata_path = os.path.join(cache_dir, f"{dataset_name}_metadata.parquet")
     metadata_df.to_parquet(metadata_path)
+
+    # Print warning summary
+    if warning_counts:
+        print("\nPost-processing Warning Summary:")
+        for warning_type, count in warning_counts.items():
+            print(f"  - {warning_type}: {count} examples flagged")
+    else:
+        print("\nNo post-processing warnings triggered.")
 
     print(
         f"{dataset_name.upper()} cache built successfully. Metadata saved to {metadata_path}"
